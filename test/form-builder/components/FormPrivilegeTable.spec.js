@@ -9,7 +9,7 @@ import { mount } from 'enzyme';
 chai.use(chaiEnzyme());
 
 describe('FormPrivilegeTable', () => {
-    const formData = { resources: {} };
+    const formData = { resources: {} }
 
     const defaultProps = {
         formUuid: 'form_uuid'
@@ -43,5 +43,23 @@ describe('FormPrivilegeTable', () => {
         sinon.assert.callOrder(
             mockHttp.post.withArgs('/openmrs/ws/rest/v1/bahmniie/form/saveFormPrivileges'));
         sinon.assert.calledOnce(mockHttp.post.withArgs('/openmrs/ws/rest/v1/bahmniie/form/saveFormPrivileges'));
+
+        wrapper.unmount()
+    });
+
+    it('should save form data when save button is clicked', () => {
+        const formData = { resources: [{ value: "{\"privileges\":\"1\"}" }] }
+        mockHttp.get.withArgs('/openmrs/ws/rest/v1/form/form_uuid?v=custom:(id,uuid,name,version,published,auditInfo,resources:(value,dataType,uuid))')
+            .returns(Promise.resolve(formData));
+        const wrapper = mount(<FormPrivilegeTable {...defaultProps} />);
+        wrapper.instance().setState({ formData: formData })
+        const instance = wrapper.instance();
+        sinon.stub(instance, '_saveFormResource');
+
+        wrapper.find('.form-privilege-table-container').find('button').at(1).simulate('click');
+
+        sinon.assert.calledOnce(instance._saveFormResource);
+
+        wrapper.unmount();
     })
 })
